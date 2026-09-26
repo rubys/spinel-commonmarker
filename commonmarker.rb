@@ -29,13 +29,18 @@ end
 # segment, so a native `Commonmarker::Node` would merge with any other
 # `Node` in the program.
 module CommonmarkerNodePackage
+  # A C string the native side answers is cmark's storage, not a Spinel
+  # string, so it is declared `:cstring`: Spinel copies it onto its string
+  # heap. (`:string` would hand Spinel the pointer as is; its string
+  # functions read the byte before a string of their own for a header, and
+  # a node's literal is freed when it is set again.)
   native_struct "CmarkNodeRef", "sp_CmarkNode", "sp_CmarkNode_fin"
   native_new [], "sp_CmarkNode_new"
 
   native_method :__present?,        [], :bool,                  "sp_CmarkNode_present_p"
   native_method :__parse,           [:string, :int, :int], :self, "sp_CmarkNode_parse"
   native_method :__make,            [:int], :self,              "sp_CmarkNode_make"
-  native_method :__type_string,     [], :string,                "sp_CmarkNode_type_string"
+  native_method :__type_string,     [], :cstring,                "sp_CmarkNode_type_string"
   native_method :__type_code,       [], :int,                   "sp_CmarkNode_type_code"
   native_method :__heading_level,   [], :int,                   "sp_CmarkNode_heading_level"
   native_method :__first_child,     [], :self,                  "sp_CmarkNode_first_child"
@@ -44,11 +49,11 @@ module CommonmarkerNodePackage
   native_method :__previous_sibling, [], :self,                 "sp_CmarkNode_previous_sibling"
   native_method :__parent,          [], :self,                  "sp_CmarkNode_parent"
   native_method :__same?,           [:any], :bool,             "sp_CmarkNode_same_p"
-  native_method :__literal,         [], :string,                "sp_CmarkNode_literal"
+  native_method :__literal,         [], :cstring,                "sp_CmarkNode_literal"
   native_method :__set_literal,     [:string], :bool,           "sp_CmarkNode_set_literal"
-  native_method :__url,             [], :string,                "sp_CmarkNode_url"
+  native_method :__url,             [], :cstring,                "sp_CmarkNode_url"
   native_method :__set_url,         [:string], :bool,           "sp_CmarkNode_set_url"
-  native_method :__title,           [], :string,                "sp_CmarkNode_title"
+  native_method :__title,           [], :cstring,                "sp_CmarkNode_title"
   native_method :__set_title,       [:string], :bool,           "sp_CmarkNode_set_title"
   native_method :__insert_before,   [:any], :bool,             "sp_CmarkNode_insert_before"
   native_method :__insert_after,    [:any], :bool,             "sp_CmarkNode_insert_after"
