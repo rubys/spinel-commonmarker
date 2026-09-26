@@ -1,8 +1,8 @@
 # commonmarker (spinel-commonmarker)
 
 A subset of the [commonmarker](https://github.com/gjtorikian/commonmarker)
-gem (2.x) for Spinel, over the system
-[cmark-gfm](https://github.com/github/cmark-gfm). The require string is
+gem (2.x) for Spinel, over [cmark-gfm](https://github.com/github/cmark-gfm)
+0.29.0.gfm.13, which the package carries and compiles itself. The require string is
 `commonmarker` and the names are the gem's, so code written against the
 gem resolves here unchanged — lobsters' `Markdowner` was the first user,
 and it parses, walks and edits the tree before rendering it:
@@ -82,18 +82,23 @@ and substitutes the escaped literal (`&`, `<`, `>`, `"` — what comrak
 escapes). cmark-gfm's other safety, dropping `javascript:` URLs, is left
 as it is, which is also comrak's behaviour.
 
-The glue is **headerless**, as spinel-ruby-vips is: `spin` compiles
-carried C with `-I <package> -I <spinel>/lib` only, so the cmark-gfm
-functions and enum values used are declared in `sp_cmark.c`, taken from
-`cmark-gfm.h` (0.29.0.gfm.13). Linking is `ffi_lib "cmark-gfm"` +
-`"cmark-gfm-extensions"`, plus `-L/opt/homebrew/lib -L/usr/local/lib` for
-macOS.
+**cmark-gfm is carried, not linked from the system**, in `cmark/`: the
+0.29.0.gfm.13 release's `src/` and `extensions/` in one directory (minus
+the CLI's `main.c`), with the three headers its cmake build generates
+(`config.h`, `cmark-gfm_export.h`, `cmark-gfm_version.h`, which are the
+same on macOS and Linux) and its `COPYING`. Distro packages lag the
+release — Ubuntu 24.04 ships gfm.6, which parses HTML comments and some
+HTML block types differently from gfm.13 (five spec examples) — so a
+system library would make the output depend on the machine. The one edit
+to the sources is `cmark/include-paths.patch`: the extensions include a
+few core headers with angle brackets (`<parser.h>`), which only a
+`-I src` finds, and `spin` compiles carried C with `-I <package>` alone,
+so those lines use quotes.
 
 ## Requirements
 
-- macOS: `brew install cmark-gfm`
-- Debian/Ubuntu: `libcmark-gfm-dev libcmark-gfm-extensions-dev` (which
-  pull in the runtime libraries)
+A C compiler; nothing else — cmark-gfm is compiled from `cmark/` with the
+package.
 
 Spinel with matz/spinel#5074 fixed: before it, `Hash#key?` answered false
 on the options the caller passes, so every option read as its default.
@@ -160,4 +165,5 @@ lobsters' fake-data generator.
 
 ## License
 
-MIT, like the gem.
+MIT, like the gem. `cmark/` is cmark-gfm's, under its own license
+(`cmark/COPYING`, BSD-2-Clause and others).

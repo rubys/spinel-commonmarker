@@ -1,0 +1,69 @@
+diff -ru /tmp/rh-cmark-orig/autolink.c ./autolink.c
+--- /tmp/rh-cmark-orig/autolink.c	2026-09-26 08:58:44
++++ ./autolink.c	2026-09-26 08:58:44
+@@ -1,7 +1,7 @@
+ #include "autolink.h"
+-#include <parser.h>
++#include "parser.h"
+ #include <string.h>
+-#include <utf8.h>
++#include "utf8.h"
+ #include <stddef.h>
+ 
+ #if defined(_WIN32)
+diff -ru /tmp/rh-cmark-orig/strikethrough.c ./strikethrough.c
+--- /tmp/rh-cmark-orig/strikethrough.c	2026-09-26 08:58:44
++++ ./strikethrough.c	2026-09-26 08:58:44
+@@ -1,6 +1,6 @@
+ #include "strikethrough.h"
+-#include <parser.h>
+-#include <render.h>
++#include "parser.h"
++#include "render.h"
+ 
+ cmark_node_type CMARK_NODE_STRIKETHROUGH;
+ 
+diff -ru /tmp/rh-cmark-orig/table.c ./table.c
+--- /tmp/rh-cmark-orig/table.c	2026-09-26 08:58:44
++++ ./table.c	2026-09-26 08:58:44
+@@ -1,10 +1,10 @@
+-#include <cmark-gfm-extension_api.h>
+-#include <html.h>
+-#include <inlines.h>
+-#include <parser.h>
+-#include <references.h>
++#include "cmark-gfm-extension_api.h"
++#include "html.h"
++#include "inlines.h"
++#include "parser.h"
++#include "references.h"
+ #include <string.h>
+-#include <render.h>
++#include "render.h"
+ 
+ #include "ext_scanners.h"
+ #include "strikethrough.h"
+diff -ru /tmp/rh-cmark-orig/tagfilter.c ./tagfilter.c
+--- /tmp/rh-cmark-orig/tagfilter.c	2026-09-26 08:58:44
++++ ./tagfilter.c	2026-09-26 08:58:44
+@@ -1,5 +1,5 @@
+ #include "tagfilter.h"
+-#include <parser.h>
++#include "parser.h"
+ #include <ctype.h>
+ 
+ static const char *blacklist[] = {
+diff -ru /tmp/rh-cmark-orig/tasklist.c ./tasklist.c
+--- /tmp/rh-cmark-orig/tasklist.c	2026-09-26 08:58:44
++++ ./tasklist.c	2026-09-26 08:58:44
+@@ -1,7 +1,7 @@
+ #include "tasklist.h"
+-#include <parser.h>
+-#include <render.h>
+-#include <html.h>
++#include "parser.h"
++#include "render.h"
++#include "html.h"
+ #include "ext_scanners.h"
+ 
+ typedef enum {

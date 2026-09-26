@@ -25,10 +25,10 @@
  * Owner bookkeeping is under one mutex: finalizers may run on a GC sweeper
  * thread. cmark_node_free touches neither the Spinel heap nor Ruby.
  *
- * HEADERLESS, as spinel-ruby-vips is and for the same reason: `spin`
- * compiles carried C with `-I <package> -I <spinel>/lib` only. The
- * cmark-gfm types are opaque here and the functions and enum values used
- * are declared below, taken from cmark-gfm.h (0.29.0.gfm.13).
+ * cmark-gfm itself is CARRIED, at 0.29.0.gfm.13, in cmark/ -- not linked
+ * from the system -- so every machine parses with the same release (the
+ * distro packages lag: Ubuntu 24.04 ships gfm.6, which differs from gfm.13
+ * on HTML comments and HTML block types).
  *
  * RAW HTML UNDER `escape: true`. comrak's escape option renders raw HTML
  * as escaped text; cmark-gfm has no such option, and without UNSAFE it
@@ -49,65 +49,15 @@
 
 #include "spinel/runtime.h" /* sp_gc_alloc, sp_int, sp_bool */
 
-typedef struct cmark_node cmark_node;
-typedef struct cmark_parser cmark_parser;
-typedef struct cmark_llist cmark_llist;
-typedef struct cmark_syntax_extension cmark_syntax_extension;
-typedef struct cmark_iter cmark_iter;
+/* cmark-gfm 0.29.0.gfm.13, carried in cmark/ (README, "How it is built"). */
+#include "cmark/cmark-gfm.h"
+#include "cmark/cmark-gfm-extension_api.h"
+#include "cmark/cmark-gfm-core-extensions.h"
 
-#define CM_TYPE_BLOCK 0x8000
-#define CM_TYPE_INLINE (0x8000 | 0x4000)
-#define CM_NODE_DOCUMENT (CM_TYPE_BLOCK | 0x0001)
-#define CM_NODE_HTML_BLOCK (CM_TYPE_BLOCK | 0x0006)
-#define CM_NODE_PARAGRAPH (CM_TYPE_BLOCK | 0x0008)
-#define CM_NODE_TEXT (CM_TYPE_INLINE | 0x0001)
-#define CM_NODE_SOFTBREAK (CM_TYPE_INLINE | 0x0002)
-#define CM_NODE_LINEBREAK (CM_TYPE_INLINE | 0x0003)
-#define CM_NODE_CODE (CM_TYPE_INLINE | 0x0004)
-#define CM_NODE_HTML_INLINE (CM_TYPE_INLINE | 0x0005)
-#define CM_NODE_EMPH (CM_TYPE_INLINE | 0x0007)
-#define CM_NODE_STRONG (CM_TYPE_INLINE | 0x0008)
-#define CM_NODE_LINK (CM_TYPE_INLINE | 0x0009)
-#define CM_NODE_IMAGE (CM_TYPE_INLINE | 0x000a)
-
-#define CM_EVENT_DONE 1
-#define CM_EVENT_ENTER 2
-
-void cmark_gfm_core_extensions_ensure_registered(void);
-cmark_syntax_extension *cmark_find_syntax_extension(const char *name);
-cmark_parser *cmark_parser_new(int options);
-void cmark_parser_free(cmark_parser *parser);
-int cmark_parser_attach_syntax_extension(cmark_parser *parser, cmark_syntax_extension *ext);
-cmark_llist *cmark_parser_get_syntax_extensions(cmark_parser *parser);
-void cmark_parser_feed(cmark_parser *parser, const char *buffer, size_t len);
-cmark_node *cmark_parser_finish(cmark_parser *parser);
-char *cmark_render_html(cmark_node *root, int options, cmark_llist *extensions);
-char *cmark_render_commonmark(cmark_node *root, int options, int width);
-cmark_node *cmark_node_new(int type);
-void cmark_node_free(cmark_node *node);
-int cmark_node_get_type(cmark_node *node);
-const char *cmark_node_get_type_string(cmark_node *node);
-cmark_node *cmark_node_first_child(cmark_node *node);
-cmark_node *cmark_node_last_child(cmark_node *node);
-cmark_node *cmark_node_next(cmark_node *node);
-cmark_node *cmark_node_previous(cmark_node *node);
-cmark_node *cmark_node_parent(cmark_node *node);
-const char *cmark_node_get_literal(cmark_node *node);
-int cmark_node_set_literal(cmark_node *node, const char *content);
-const char *cmark_node_get_url(cmark_node *node);
-int cmark_node_set_url(cmark_node *node, const char *url);
-const char *cmark_node_get_title(cmark_node *node);
-int cmark_node_set_title(cmark_node *node, const char *title);
-int cmark_node_get_heading_level(cmark_node *node);
-int cmark_node_insert_before(cmark_node *node, cmark_node *sibling);
-int cmark_node_insert_after(cmark_node *node, cmark_node *sibling);
-int cmark_node_append_child(cmark_node *node, cmark_node *child);
-int cmark_node_prepend_child(cmark_node *node, cmark_node *child);
-void cmark_node_unlink(cmark_node *node);
-cmark_iter *cmark_iter_new(cmark_node *root);
-void cmark_iter_free(cmark_iter *iter);
-int cmark_iter_next(cmark_iter *iter);
-cmark_node *cmark_iter_get_node(cmark_iter *iter);
+#define CM_NODE_HTML_BLOCK CMARK_NODE_HTML_BLOCK
+#define CM_NODE_HTML_INLINE CMARK_NODE_HTML_INLINE
+#define CM_EVENT_DONE CMARK_EVENT_DONE
+#define CM_EVENT_ENTER CMARK_EVENT_ENTER
 
 /* ---- extensions -------------------------------------------------------- */
 
@@ -315,7 +265,7 @@ sp_CmarkNode *sp_CmarkNode_make(sp_CmarkNode *self, sp_int type)
 {
 	cmark_node *n;
 	pthread_once(&sp_cm_once, sp_cm_init);
-	n = cmark_node_new((int)type);
+	n = cmark_node_new((cmark_node_type)type);
 	if (!n)
 		return sp_CmarkNode_new(self->cls_id);
 	return sp_cm_wrap(self->cls_id, n, sp_cm_owner_new(n));
@@ -328,7 +278,7 @@ const char *sp_CmarkNode_type_string(sp_CmarkNode *self)
 
 sp_int sp_CmarkNode_type_code(sp_CmarkNode *self)
 {
-	return cmark_node_get_type(self->node);
+	return (sp_int)cmark_node_get_type(self->node);
 }
 
 sp_int sp_CmarkNode_heading_level(sp_CmarkNode *self)
@@ -504,10 +454,10 @@ static char *sp_cm_substitute(cmark_node *root, char *html)
 	char *out = NULL;
 	size_t len = 0, cap = 0;
 	const char *cursor = html;
-	int ev;
+	cmark_event_type ev;
 	while ((ev = cmark_iter_next(it)) != CM_EVENT_DONE) {
 		cmark_node *n;
-		int t;
+		cmark_node_type t;
 		const char *lit, *hit;
 		size_t ln;
 		if (ev != CM_EVENT_ENTER)

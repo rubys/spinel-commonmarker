@@ -1,5 +1,5 @@
-# commonmarker for Spinel — a subset of the commonmarker gem (2.x) over the
-# system cmark-gfm, bound through the carried C in sp_cmark.c. The require
+# commonmarker for Spinel — a subset of the commonmarker gem (2.x) over
+# cmark-gfm 0.29.0.gfm.13 (carried in cmark/), bound through sp_cmark.c. The require
 # string is "commonmarker" and the names are the gem's, so code written
 # against the gem — lobsters' Markdowner, which parses, walks and edits the
 # tree before rendering it — resolves here unchanged.
@@ -16,11 +16,9 @@
 # - `render: { escape: true }` (raw HTML as escaped text) is done by
 #   sp_cmark.c, since cmark-gfm has no such option.
 
+# cmark-gfm is compiled from cmark/ with the package (spin.toml), so there
+# is no library to link.
 module CommonmarkerExt
-  ffi_lib "cmark-gfm"
-  ffi_lib "cmark-gfm-extensions"
-  ffi_cflags "-L/opt/homebrew/lib -L/usr/local/lib"
-
   ffi_func :sp_cmark_rendered,    [], :str
   ffi_func :sp_cmark_live_owners, [], :int
 end
