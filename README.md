@@ -100,8 +100,9 @@ so those lines use quotes.
 A C compiler; nothing else — cmark-gfm is compiled from `cmark/` with the
 package.
 
-Spinel with matz/spinel#5074 fixed: before it, `Hash#key?` answered false
-on the options the caller passes, so every option read as its default.
+Spinel 5fc203aa or later (matz/spinel#5074: before it, `Hash#key?`
+answered false on the options the caller passes, so every option read as
+its default).
 
 ## Subset vs commonmarker
 
